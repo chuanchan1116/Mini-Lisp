@@ -1,7 +1,9 @@
 package lexer
 
 import (
+	"fmt"
 	"github.com/chuanchan1116/mini-lisp/token"
+	"os"
 )
 
 type lexer struct {
@@ -30,7 +32,7 @@ func Lex(s string) *lexer {
 }
 
 func (l *lexer) skipSeparator() {
-	for separator[l.input[l.start]] && l.start < len(l.input) {
+	for l.start < len(l.input) && separator[l.input[l.start]] {
 		l.start++
 	}
 }
@@ -39,7 +41,8 @@ func (l *lexer) syntaxErr() {
 	for separator[l.input[l.pos-1]] && l.input[l.pos-1] != ')' {
 		l.pos++
 	}
-	panic("Syntax error: Unknown token `" + l.input[l.start:l.pos] + "'.")
+	fmt.Printf("Syntax error: Unknown token `%s'.\n", l.input[l.start:l.pos])
+	os.Exit(1)
 }
 
 func (l *lexer) run() {

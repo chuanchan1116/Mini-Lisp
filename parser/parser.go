@@ -1,7 +1,9 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/chuanchan1116/mini-lisp/token"
+	"os"
 	"strconv"
 )
 
@@ -41,7 +43,8 @@ func Run(t chan token.Token) (ret chan token.Token) {
 		ret <- i
 	}
 	if i, ok := <-p.t; ok {
-		panic("Semantic error: Expecting END, got `" + typeString[i.Type] + "'.")
+		fmt.Printf("Semantic error: Expecting END, got `%s'.\n", typeString[i.Type])
+		os.Exit(1)
 	}
 	close(ret)
 	return
@@ -68,7 +71,8 @@ func (p *parser) lparamState() (ret token.Token) {
 	case token.MOD:
 		ret = p.modState()
 	default:
-		panic("Semantic error: Invalid token " + op.Data)
+		fmt.Printf("Semantic error: Invalid token %s\n", op.Data)
+		os.Exit(1)
 	}
 	return
 }
@@ -77,16 +81,20 @@ func (p *parser) modState() (ret token.Token) {
 	ret.Type = token.NUM
 	a := p.value(<-p.t)
 	if a.Type == token.BOOL {
-		panic("Type Error: Expecting `number' but got `" + typeString[a.Type] + "'.")
+		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[a.Type])
+		os.Exit(1)
 	} else if a.Type == token.RPARAM {
-		panic("mod: Need 2 arguments but got 0.")
+		fmt.Printf("mod: Need 2 arguments but got 0.\n")
+		os.Exit(1)
 	}
 
 	b := p.value(<-p.t)
 	if b.Type == token.BOOL {
-		panic("Type Error: Expecting `number' but got `" + typeString[b.Type] + "'.")
+		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[b.Type])
+		os.Exit(1)
 	} else if b.Type == token.RPARAM {
-		panic("mod: Need 2 arguments but got 1.")
+		fmt.Printf("mod: Need 2 arguments but got 1.\n")
+		os.Exit(1)
 	}
 
 	av, _ := strconv.Atoi(a.Data)
@@ -96,9 +104,11 @@ func (p *parser) modState() (ret token.Token) {
 	rp := p.value(<-p.t)
 	if rp.Type != token.RPARAM {
 		if rp.Type == token.NUM {
-			panic("mod: Needs 2 arguments but got more.")
+			fmt.Printf("mod: Needs 2 arguments but got more.\n")
+			os.Exit(1)
 		} else {
-			panic("Semantic error: Expecting `)' but got `" + typeString[rp.Type] + "'.")
+			fmt.Printf("Semantic error: Expecting `)' but got `%s'\n", typeString[rp.Type])
+			os.Exit(1)
 		}
 	}
 	return
@@ -108,16 +118,20 @@ func (p *parser) divState() (ret token.Token) {
 	ret.Type = token.NUM
 	a := p.value(<-p.t)
 	if a.Type == token.BOOL {
-		panic("Type Error: Expecting `number' but got `" + typeString[a.Type] + "'.")
+		fmt.Printf("Type Error: Expecting `number' but got `%s'\n", typeString[a.Type])
+		os.Exit(1)
 	} else if a.Type == token.RPARAM {
-		panic("/: Need 2 arguments but got 0.")
+		fmt.Printf("/: Need 2 arguments but got 0.\n")
+		os.Exit(1)
 	}
 
 	b := p.value(<-p.t)
 	if b.Type == token.BOOL {
-		panic("Type Error: Expecting `number' but got `" + typeString[b.Type] + "'.")
+		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[b.Type])
+		os.Exit(1)
 	} else if b.Type == token.RPARAM {
-		panic("/: Need 2 arguments but got 1.")
+		fmt.Printf("/: Need 2 arguments but got 1.\n")
+		os.Exit(1)
 	}
 
 	av, _ := strconv.Atoi(a.Data)
@@ -127,9 +141,11 @@ func (p *parser) divState() (ret token.Token) {
 	rp := p.value(<-p.t)
 	if rp.Type != token.RPARAM {
 		if rp.Type == token.NUM {
-			panic("/: Needs 2 arguments but got more.")
+			fmt.Printf("/: Needs 2 arguments but got more.\n")
+			os.Exit(1)
 		} else {
-			panic("Semantic error: Expecting `)' but got `" + typeString[rp.Type] + "'.")
+			fmt.Printf("Semantic error: Expecting `)' but got `%s'.\n", typeString[rp.Type])
+			os.Exit(1)
 		}
 	}
 	return
@@ -148,11 +164,13 @@ func (p *parser) mulState() (ret token.Token) {
 			v, _ := strconv.Atoi(t.Data)
 			val *= v
 		} else {
-			panic("Type Error: Expecting `number' but got `" + typeString[t.Type] + "'.")
+			fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[t.Type])
+			os.Exit(1)
 		}
 	}
 	if argc < 2 {
-		panic("*: Need at least 2 arguments, but got " + strconv.Itoa(argc) + ".")
+		fmt.Printf("*: Need at least 2 arguments, but got %d.\n", argc)
+		os.Exit(1)
 	}
 	ret.Data = strconv.Itoa(val)
 	return
@@ -162,16 +180,20 @@ func (p *parser) minusState() (ret token.Token) {
 	ret.Type = token.NUM
 	a := p.value(<-p.t)
 	if a.Type == token.BOOL {
-		panic("Type Error: Expecting `number' but got `" + typeString[a.Type] + "'.")
+		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[a.Type])
+		os.Exit(1)
 	} else if a.Type == token.RPARAM {
-		panic("-: Need 2 arguments but got 0.")
+		fmt.Printf("-: Need 2 arguments but got 0.\n")
+		os.Exit(1)
 	}
 
 	b := p.value(<-p.t)
 	if b.Type == token.BOOL {
-		panic("Type Error: Expecting `number' but got `" + typeString[b.Type] + "'.")
+		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[b.Type])
+		os.Exit(1)
 	} else if b.Type == token.RPARAM {
-		panic("-: Need 2 arguments but got 1.")
+		fmt.Printf("-: Need 2 arguments but got 1.\n")
+		os.Exit(1)
 	}
 
 	av, _ := strconv.Atoi(a.Data)
@@ -181,9 +203,11 @@ func (p *parser) minusState() (ret token.Token) {
 	rp := p.value(<-p.t)
 	if rp.Type != token.RPARAM {
 		if rp.Type == token.NUM {
-			panic("-: Needs 2 arguments but got more.")
+			fmt.Printf("-: Needs 2 arguments but got more.\n")
+			os.Exit(1)
 		} else {
-			panic("Semantic error: Expecting `)' but got `" + typeString[rp.Type] + "'.")
+			fmt.Printf("Semantic error: Expecting `)' but got `%s'.\n", typeString[rp.Type])
+			os.Exit(1)
 		}
 	}
 	return
@@ -202,11 +226,13 @@ func (p *parser) plusState() (ret token.Token) {
 			v, _ := strconv.Atoi(t.Data)
 			val += v
 		} else {
-			panic("Type Error: Expecting `number' but got `" + typeString[t.Type] + "'.")
+			fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[t.Type])
+			os.Exit(1)
 		}
 	}
 	if argc < 2 {
-		panic("+: Need at least 2 arguments, but got " + strconv.Itoa(argc) + ".")
+		fmt.Printf("+: Need at least 2 arguments, but got %d.\n", argc)
+		os.Exit(1)
 	}
 	ret.Data = strconv.Itoa(val)
 	return
@@ -220,12 +246,14 @@ func (p *parser) value(t token.Token) (ret token.Token) {
 		if v, ok := p.symbol[t.Data]; ok {
 			ret = v
 		} else {
-			panic("Undeclaired variable: " + t.Data + ".")
+			fmt.Printf("Undeclaired variable: `%s'.\n", t.Data)
+			os.Exit(1)
 		}
 	case token.LPARAM:
 		ret = p.lparamState()
 	default:
-		panic("Semantic error: Expecting `number', `boolean', `variable' or EXP, got `" + typeString[t.Type] + "'.")
+		fmt.Printf("Semantic error: Expecting `number', `boolean', `variable' or EXP, got `%s'.\n", typeString[t.Type])
+		os.Exit(1)
 	}
 	return
 }
