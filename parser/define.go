@@ -9,7 +9,7 @@ import (
 
 func (p *parser) defineState() (ret token.Token) {
 	ret.Type = token.NULL
-	id := p.value(<-p.t)
+	id := <-p.t
 	if id.Type != token.ID {
 		fmt.Printf("Type Error: Expecting ID but got `%s'.\n", typeString[id.Type])
 		os.Exit(1)
@@ -19,6 +19,7 @@ func (p *parser) defineState() (ret token.Token) {
 		fmt.Printf("Type Error: Expecting EXP but got `%s'.\n", typeString[exp.Type])
 		os.Exit(1)
 	}
+	p.symbol[id.Data] = exp
 	rp := p.value(<-p.t)
 	if rp.Type != token.RPARAM {
 		fmt.Printf("Semantic error: Expecting `)' but got `%s'.\n", typeString[rp.Type])
