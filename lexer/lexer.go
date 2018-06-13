@@ -39,7 +39,7 @@ func (l *lexer) syntaxErr() {
 	for separator[l.input[l.pos-1]] && l.input[l.pos-1] != ')' {
 		l.pos++
 	}
-	panic("syntax error: unknown token " + l.input[l.start:l.pos])
+	panic("Syntax error: Unknown token `" + l.input[l.start:l.pos] + "'.")
 }
 
 func (l *lexer) run() {
