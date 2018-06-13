@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/chuanchan1116/mini-lisp/lexer"
-	"github.com/chuanchan1116/mini-lisp/parser"
 	"io/ioutil"
 	"os"
+
+	"github.com/chuanchan1116/mini-lisp/lexer"
+	"github.com/chuanchan1116/mini-lisp/parser"
 )
 
 func main() {

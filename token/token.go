@@ -25,7 +25,7 @@ const (
 	RPARAM
 	PRINTNUM
 	PRINTBOOL
-	EOL
+	NULL
 )
 
 type Token struct {

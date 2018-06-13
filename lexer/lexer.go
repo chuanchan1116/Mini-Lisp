@@ -2,8 +2,9 @@ package lexer
 
 import (
 	"fmt"
-	"github.com/chuanchan1116/mini-lisp/token"
 	"os"
+
+	"github.com/chuanchan1116/mini-lisp/token"
 )
 
 type lexer struct {

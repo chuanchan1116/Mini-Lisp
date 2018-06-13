@@ -2,9 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"github.com/chuanchan1116/mini-lisp/token"
 	"os"
-	"strconv"
+
+	"github.com/chuanchan1116/mini-lisp/token"
 )
 
 var typeString = map[token.TokenType]string{
@@ -29,6 +29,7 @@ var typeString = map[token.TokenType]string{
 	token.RPARAM:    ")",
 	token.PRINTNUM:  "print-num",
 	token.PRINTBOOL: "print-bool",
+	token.NULL:      "NULL",
 }
 
 type parser struct {
@@ -70,6 +71,22 @@ func (p *parser) lparamState() (ret token.Token) {
 		ret = p.divState()
 	case token.MOD:
 		ret = p.modState()
+	case token.GREATER, token.SMALLER:
+		ret = p.compareState(op.Data)
+	case token.EQU:
+		ret = p.equState()
+	case token.AND:
+		ret = p.andState()
+	case token.OR:
+		ret = p.orState()
+	case token.NOT:
+		ret = p.notState()
+	case token.DEFINE:
+		ret = p.defineState()
+	case token.PRINTNUM:
+		ret = p.printNum()
+	case token.PRINTBOOL:
+		ret = p.printBool()
 	default:
 		fmt.Printf("Semantic error: Invalid token %s\n", op.Data)
 		os.Exit(1)
@@ -77,164 +94,35 @@ func (p *parser) lparamState() (ret token.Token) {
 	return
 }
 
-func (p *parser) modState() (ret token.Token) {
-	ret.Type = token.NUM
-	a := p.value(<-p.t)
-	if a.Type == token.BOOL {
-		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[a.Type])
-		os.Exit(1)
-	} else if a.Type == token.RPARAM {
-		fmt.Printf("mod: Need 2 arguments but got 0.\n")
+func (p *parser) printBool() (ret token.Token) {
+	ret.Type = token.NULL
+	val := p.value(<-p.t)
+	if val.Type != token.BOOL {
+		fmt.Printf("Type Error: Expecting `boolean' but got `%s'.\n", typeString[val.Type])
 		os.Exit(1)
 	}
-
-	b := p.value(<-p.t)
-	if b.Type == token.BOOL {
-		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[b.Type])
-		os.Exit(1)
-	} else if b.Type == token.RPARAM {
-		fmt.Printf("mod: Need 2 arguments but got 1.\n")
-		os.Exit(1)
-	}
-
-	av, _ := strconv.Atoi(a.Data)
-	bv, _ := strconv.Atoi(b.Data)
-	ret.Data = strconv.Itoa(av % bv)
-
+	fmt.Println(val.Data)
 	rp := p.value(<-p.t)
 	if rp.Type != token.RPARAM {
-		if rp.Type == token.NUM {
-			fmt.Printf("mod: Needs 2 arguments but got more.\n")
-			os.Exit(1)
-		} else {
-			fmt.Printf("Semantic error: Expecting `)' but got `%s'\n", typeString[rp.Type])
-			os.Exit(1)
-		}
+		fmt.Printf("Semantic error: Expecting `)' but got `%s'.\n", typeString[rp.Type])
+		os.Exit(1)
 	}
 	return
 }
 
-func (p *parser) divState() (ret token.Token) {
-	ret.Type = token.NUM
-	a := p.value(<-p.t)
-	if a.Type == token.BOOL {
-		fmt.Printf("Type Error: Expecting `number' but got `%s'\n", typeString[a.Type])
-		os.Exit(1)
-	} else if a.Type == token.RPARAM {
-		fmt.Printf("/: Need 2 arguments but got 0.\n")
+func (p *parser) printNum() (ret token.Token) {
+	ret.Type = token.NULL
+	val := p.value(<-p.t)
+	if val.Type != token.NUM {
+		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[val.Type])
 		os.Exit(1)
 	}
-
-	b := p.value(<-p.t)
-	if b.Type == token.BOOL {
-		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[b.Type])
-		os.Exit(1)
-	} else if b.Type == token.RPARAM {
-		fmt.Printf("/: Need 2 arguments but got 1.\n")
-		os.Exit(1)
-	}
-
-	av, _ := strconv.Atoi(a.Data)
-	bv, _ := strconv.Atoi(b.Data)
-	ret.Data = strconv.Itoa(av / bv)
-
+	fmt.Println(val.Data)
 	rp := p.value(<-p.t)
 	if rp.Type != token.RPARAM {
-		if rp.Type == token.NUM {
-			fmt.Printf("/: Needs 2 arguments but got more.\n")
-			os.Exit(1)
-		} else {
-			fmt.Printf("Semantic error: Expecting `)' but got `%s'.\n", typeString[rp.Type])
-			os.Exit(1)
-		}
-	}
-	return
-}
-
-func (p *parser) mulState() (ret token.Token) {
-	argc := 0
-	val := 1
-	ret.Type = token.NUM
-	for i := range p.t {
-		t := p.value(i)
-		if t.Type == token.RPARAM {
-			break
-		} else if t.Type == token.NUM {
-			argc++
-			v, _ := strconv.Atoi(t.Data)
-			val *= v
-		} else {
-			fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[t.Type])
-			os.Exit(1)
-		}
-	}
-	if argc < 2 {
-		fmt.Printf("*: Need at least 2 arguments, but got %d.\n", argc)
+		fmt.Printf("Semantic error: Expecting `)' but got `%s'.\n", typeString[rp.Type])
 		os.Exit(1)
 	}
-	ret.Data = strconv.Itoa(val)
-	return
-}
-
-func (p *parser) minusState() (ret token.Token) {
-	ret.Type = token.NUM
-	a := p.value(<-p.t)
-	if a.Type == token.BOOL {
-		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[a.Type])
-		os.Exit(1)
-	} else if a.Type == token.RPARAM {
-		fmt.Printf("-: Need 2 arguments but got 0.\n")
-		os.Exit(1)
-	}
-
-	b := p.value(<-p.t)
-	if b.Type == token.BOOL {
-		fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[b.Type])
-		os.Exit(1)
-	} else if b.Type == token.RPARAM {
-		fmt.Printf("-: Need 2 arguments but got 1.\n")
-		os.Exit(1)
-	}
-
-	av, _ := strconv.Atoi(a.Data)
-	bv, _ := strconv.Atoi(b.Data)
-	ret.Data = strconv.Itoa(av - bv)
-
-	rp := p.value(<-p.t)
-	if rp.Type != token.RPARAM {
-		if rp.Type == token.NUM {
-			fmt.Printf("-: Needs 2 arguments but got more.\n")
-			os.Exit(1)
-		} else {
-			fmt.Printf("Semantic error: Expecting `)' but got `%s'.\n", typeString[rp.Type])
-			os.Exit(1)
-		}
-	}
-	return
-}
-
-func (p *parser) plusState() (ret token.Token) {
-	argc := 0
-	val := 0
-	ret.Type = token.NUM
-	for i := range p.t {
-		t := p.value(i)
-		if t.Type == token.RPARAM {
-			break
-		} else if t.Type == token.NUM {
-			argc++
-			v, _ := strconv.Atoi(t.Data)
-			val += v
-		} else {
-			fmt.Printf("Type Error: Expecting `number' but got `%s'.\n", typeString[t.Type])
-			os.Exit(1)
-		}
-	}
-	if argc < 2 {
-		fmt.Printf("+: Need at least 2 arguments, but got %d.\n", argc)
-		os.Exit(1)
-	}
-	ret.Data = strconv.Itoa(val)
 	return
 }
 

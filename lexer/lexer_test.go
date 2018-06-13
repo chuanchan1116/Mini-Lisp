@@ -1,8 +1,9 @@
 package lexer
 
 import (
-	"github.com/chuanchan1116/mini-lisp/token"
 	"testing"
+
+	"github.com/chuanchan1116/mini-lisp/token"
 )
 
 var s = "() 123 -123 0 x xyz123 #t #f define fun if + - * / mod > < = and or not print-num print-bool"
