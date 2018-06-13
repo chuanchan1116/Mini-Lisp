@@ -37,23 +37,20 @@ type parser struct {
 	symbol map[string]token.Token
 }
 
-func Run(t chan token.Token) (ret chan token.Token) {
+func Run(t chan token.Token) {
 	var p parser
 	p.t = t
-	for i := range p.state() {
-		ret <- i
-	}
+	p.state()
 	if i, ok := <-p.t; ok {
 		fmt.Printf("Semantic error: Expecting END, got `%s'.\n", typeString[i.Type])
 		os.Exit(1)
 	}
-	close(ret)
 	return
 }
 
-func (p *parser) state() (ret chan token.Token) {
+func (p *parser) state() {
 	for t := range p.t {
-		ret <- p.value(t)
+		p.value(t)
 	}
 	return
 }
@@ -88,7 +85,7 @@ func (p *parser) lparamState() (ret token.Token) {
 	case token.PRINTBOOL:
 		ret = p.printBool()
 	default:
-		fmt.Printf("Semantic error: Invalid token %s\n", op.Data)
+		fmt.Printf("Runtime error: Unimplemented token %s\n", op.Data)
 		os.Exit(1)
 	}
 	return

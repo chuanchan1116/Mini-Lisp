@@ -47,10 +47,12 @@ func (l *lexer) syntaxErr() {
 }
 
 func (l *lexer) run() {
-	for l.start != len(l.input) {
+	for l.start < len(l.input) {
 		tok := *new(token.Token)
 		l.skipSeparator()
-
+		if l.start >= len(l.input) {
+			break
+		}
 		l.pos = l.start + 1
 		c := l.input[l.start]
 		switch {
