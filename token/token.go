@@ -25,6 +25,7 @@ const (
 	RPARAM
 	PRINTNUM
 	PRINTBOOL
+	FUNCEXP
 	NULL
 )
 

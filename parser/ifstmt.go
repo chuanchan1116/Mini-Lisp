@@ -11,13 +11,32 @@ func (p *parser) ifState() (ret token.Token) {
 	if testExp.Type != token.BOOL {
 		fmt.Printf("Type Error: Expecting `boolean' but got `%s'.\n", typeString[testExp.Type])
 	}
-	thanExp := p.value(<-p.t)
-	elseExp := p.value(<-p.t)
 
 	if testExp.Data == "#t" {
+		thanExp := p.value(<-p.t)
+		p.skipExp()
 		ret = thanExp
 	} else {
+		p.skipExp()
+		elseExp := p.value(<-p.t)
 		ret = elseExp
 	}
 	return
+}
+
+func (p *parser) skipExp() {
+	t := <-p.t
+	if t.Type == token.LPARAM {
+		level := 1
+		for i := range p.t {
+			if i.Type == token.RPARAM {
+				level--
+			} else if i.Type == token.LPARAM {
+				level++
+			}
+			if level == 0 {
+				break
+			}
+		}
+	}
 }

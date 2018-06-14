@@ -29,19 +29,21 @@ var typeString = map[token.TokenType]string{
 	token.RPARAM:    ")",
 	token.PRINTNUM:  "print-num",
 	token.PRINTBOOL: "print-bool",
+	token.FUNCEXP:   "function",
 	token.NULL:      "NULL",
 }
 
 type parser struct {
-	t      chan token.Token
-	symbol map[string]token.Token
+	t         chan token.Token
+	symbol    map[string]token.Token
+	funcTable []token.Token
 }
 
-func Run(t chan token.Token) {
+func Run(t chan token.Token) (ret token.Token) {
 	var p parser
 	p.t = t
 	p.symbol = make(map[string]token.Token)
-	p.state()
+	ret = p.state()
 	if i, ok := <-p.t; ok {
 		fmt.Printf("Semantic error: Expecting END, got `%s'.\n", typeString[i.Type])
 		os.Exit(1)
@@ -49,9 +51,12 @@ func Run(t chan token.Token) {
 	return
 }
 
-func (p *parser) state() (ret []token.Token) {
+func (p *parser) state() (ret token.Token) {
 	for t := range p.t {
-		ret = append(ret, p.value(t))
+		v := p.value(t)
+		if v.Type == token.BOOL || v.Type == token.NUM || v.Type == token.FUNCEXP {
+			ret = v
+		}
 	}
 	return
 }
@@ -87,6 +92,12 @@ func (p *parser) lparamState() (ret token.Token) {
 		ret = p.printBool()
 	case token.IF:
 		ret = p.ifState()
+	case token.LPARAM:
+		ret = p.funcState()
+	case token.FUNC:
+		ret = p.funcDefineState()
+	case token.ID:
+		ret = p.funcCallState(p.symbol[op.Data].Data)
 	default:
 		fmt.Printf("Runtime error: Unimplemented token %s\n", op.Data)
 		os.Exit(1)
@@ -139,9 +150,14 @@ func (p *parser) value(t token.Token) (ret token.Token) {
 		}
 	case token.LPARAM:
 		ret = p.lparamState()
+	case token.FUNCEXP:
+		ret = p.funcCallState(t.Data)
 	default:
 		fmt.Printf("Semantic error: Expecting `number', `boolean', `variable' or EXP, got `%s'.\n", typeString[t.Type])
 		os.Exit(1)
+	}
+	if ret.Type == token.FUNCEXP {
+		ret = p.funcCallState(ret.Data)
 	}
 	return
 }
